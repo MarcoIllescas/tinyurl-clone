@@ -1,0 +1,27 @@
+# --- Python --- #
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+
+# --- Node/React --- #
+node_modules/
+build/
+dist/
+
+
+# --- Environments --- #
+.env
+
+
+# --- Docker --- # 
+*.log
+mongo_data/
+docker-compose.override.yml
+
+
+# --- System --- #
+.DS_Store
+Thumbs.db
