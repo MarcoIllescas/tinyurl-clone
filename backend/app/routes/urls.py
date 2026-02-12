@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import RedirectResponse
-from app.models import URLCreate, URLModel
+from app.models import URLCreate, URLModel, URLResolve
 from app.db import get_database
 from app.utils import generate_short_id
 from datetime import datetime
@@ -12,19 +12,14 @@ async def create_short_url(url_payload: URLCreate):
 	db = await get_database()
 	collection = db["urls"]
 
-	# Check if url already exists in the DB
-	existing_url = await collection.find_one({"long_url": str(url_payload.long_url)})
-
-	if(existing_url):
-		existing_url["_id"] = str(existing_url["_id"])
-		return existing_url
-
-	# 1. Generate short_id
-	short_id = generate_short_id()
+	# 1. Generate short_id based on URL hash
+	short_id = generate_short_id(str(url_payload.long_url))
 
 	# 2. Check if it already exists
-	while await collection.find_one({"short_id": short_id}):
-		short_id = generate_short_id()
+	existing_doc = await collection.find_one({"short_id": short_id})
+	if(existing_doc):
+		existing_doc["_id"] = str(existing_doc["_id"])
+		return existing_doc
 
 	# 3. Create document 
 	new_url = {
@@ -38,6 +33,18 @@ async def create_short_url(url_payload: URLCreate):
 
 	# 5. Return response
 	return {**new_url, "_id": str(result.inserted_id)}
+
+@router.post("/resolve")
+async def resolve_url(payload: URLResolve):
+	db = await get_database()
+	collection = db["urls"]
+
+	url_doc = await collection.find_one({"short_id": payload.short_id})
+
+	if(url_doc is None):
+		raise HTTPException(status_code=404, detail="URL not found")
+
+	return {"long_url": url_doc["long_url"]}
 
 @router.get("/{short_id}")
 async def redirect_to_url(short_id: str):

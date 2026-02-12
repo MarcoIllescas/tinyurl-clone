@@ -15,3 +15,7 @@ class URLModel(BaseModel):
 
 	class Config:
 		populate_by_name = True
+
+# Template to resolve short_id
+class URLResolve(BaseModel):
+	short_id: str
