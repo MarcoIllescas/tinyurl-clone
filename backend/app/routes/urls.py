@@ -12,6 +12,13 @@ async def create_short_url(url_payload: URLCreate):
 	db = await get_database()
 	collection = db["urls"]
 
+	# Check if url already exists in the DB
+	existing_url = await collection.find_one({"long_url": str(url_payload.long_url)})
+
+	if(existing_url):
+		existing_url["_id"] = str(existing_url["_id"])
+		return existing_url
+
 	# 1. Generate short_id
 	short_id = generate_short_id()
 
