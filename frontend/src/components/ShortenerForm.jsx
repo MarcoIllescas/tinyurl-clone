@@ -108,7 +108,7 @@ const ShortenerForm = () => {
             />
           </div>
           <button type="submit" disabled={loading || !inputValue.trim()} className="main-btn">
-            {loading ? 'Processing...' : (mode === 'shorten' ? '✂️ Shorten' : '🔍 Verify')}
+            {loading ? 'Processing...' : (mode === 'shorten' ? 'Shorten' : 'Verify')}
           </button>
         </form>
 
@@ -138,7 +138,7 @@ const ShortenerForm = () => {
                 {resultLongUrl} <FaExternalLinkAlt className="link-icon-small"/>
               </a>
             </div>
-            <p className="security-note">🔒 Verified: It is safe to open this link.</p>
+            <p className="security-note">Verified: It is safe to open this link.</p>
           </div>
         )}
       </div>
