@@ -55,12 +55,27 @@ const ShortenerForm = () => {
       
     } catch (err) {
       console.error(err);
-      if (err.response && err.response.status === 404) {
-        setError('URL not found in DB.');
-      } else if (mode === 'shorten') {
-         setError('Error. Make sure the URL is valid.');
+      if (err.response) {
+        // 1. Error 429: Rate Limit
+        if (err.response.status === 429) {
+          setError('Pay Premium to keep shortening!')
+        }
+        // 2. Error 404: Not found
+        else if (err.response.status === 404) {
+          setError('The short_id do not exist.')
+        }
+        // 3. Server errors
+        else {
+          if (mode === 'shorten') {
+            setError('Error shortening. Make sure the URL is valid')
+          }
+          else {
+            setError('Error verifying. Check the ID')
+          }
+        }
       } else {
-         setError('Error verifying. Check the ID or the connection.');
+        // 4. Network error 
+        setError('Connection error')
       }
     } finally {
       setLoading(false);

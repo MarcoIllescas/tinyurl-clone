@@ -1,14 +1,21 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Request
 from fastapi.responses import RedirectResponse
 from app.models import URLCreate, URLModel, URLResolve
 from app.db import get_database
 from app.utils import generate_short_id
 from datetime import datetime
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 router = APIRouter()
 
+# Limit configuration
+limiter = Limiter(key_func=get_remote_address)
+
+# Protected: 5 attempts per minute
 @router.post("/", response_model=URLModel, status_code=status.HTTP_201_CREATED)
-async def create_short_url(url_payload: URLCreate):
+@limiter.limit("5/minute")
+async def create_short_url(request: Request, url_payload: URLCreate):
 	db = await get_database()
 	collection = db["urls"]
 
@@ -34,8 +41,10 @@ async def create_short_url(url_payload: URLCreate):
 	# 5. Return response
 	return {**new_url, "_id": str(result.inserted_id)}
 
+# Protected: 10 attempts per minute
 @router.post("/resolve")
-async def resolve_url(payload: URLResolve):
+@limiter.limit("10/minute")
+async def resolve_url(request: Request, payload: URLResolve):
 	db = await get_database()
 	collection = db["urls"]
 
@@ -46,8 +55,10 @@ async def resolve_url(payload: URLResolve):
 
 	return {"long_url": url_doc["long_url"]}
 
+# Protected" 60 attempts per minute 
 @router.get("/{short_id}")
-async def redirect_to_url(short_id: str):
+@limiter.limit("60/minute")
+async def redirect_to_url(request: Request, short_id: str):
 	db = await get_database()
 	collection = db["urls"]
 
